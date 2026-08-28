@@ -14,6 +14,15 @@
       }
     },
     {
+      "name": "debug-log-user",
+      "policyType": "custom-code-inbound",
+      "handler": {
+        "export": "default",
+        "module": "$import(./modules/log-user-data)",
+        "options": {}
+      }
+    },
+    {
       "name": "demo-mcp-upstream-key",
       "policyType": "set-upstream-api-key-inbound",
       "handler": {
