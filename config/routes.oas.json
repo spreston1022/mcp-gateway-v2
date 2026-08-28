@@ -21,7 +21,6 @@
           "policies": {
             "inbound": [
               "auth0-managed-oauth",
-              "debug-log-user",
               "demo-mcp-upstream-key",
               "demo-mcp-capability-filter"
             ]
