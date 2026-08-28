@@ -4,5 +4,29 @@
     "version": "1.0.0",
     "title": "My Zuplo API"
   },
-  "paths": {}
+  "paths": {
+    "/mcp/demo-v1": {
+      "get,post": {
+        "operationId": "demo-mcp-server",
+        "summary": "Demo MCP Proxy",
+        "x-zuplo-route": {
+          "corsPolicy": "none",
+          "handler": {
+            "module": "$import(@zuplo/runtime/mcp-gateway)",
+            "export": "McpProxyHandler",
+            "options": {
+              "rewritePattern": "https://demo-mcp-server.spreston1022.workers.dev/mcp"
+            }
+          },
+          "policies": {
+            "inbound": [
+              "auth0-managed-oauth",
+              "demo-mcp-upstream-key",
+              "demo-mcp-capability-filter"
+            ]
+          }
+        }
+      }
+    }
+  }
 }

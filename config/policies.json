@@ -1,3 +1,57 @@
 {
-  "policies": []
+  "policies": [
+    {
+      "name": "auth0-managed-oauth",
+      "policyType": "mcp-auth0-oauth-inbound",
+      "handler": {
+        "module": "$import(@zuplo/runtime/mcp-gateway)",
+        "export": "McpAuth0OAuthInboundPolicy",
+        "options": {
+          "auth0Domain": "$env(AUTH0_DOMAIN)",
+          "clientId": "$env(AUTH0_CLIENT_ID)",
+          "clientSecret": "$env(AUTH0_CLIENT_SECRET)"
+        }
+      }
+    },
+    {
+      "name": "demo-mcp-upstream-key",
+      "policyType": "set-upstream-api-key-inbound",
+      "handler": {
+        "export": "SetUpstreamApiKeyInboundPolicy",
+        "module": "$import(@zuplo/runtime)",
+        "options": {
+          "header": "Authorization",
+          "value": "Bearer $env(DEMO_MCP_TOKEN)"
+        }
+      }
+    },
+    {
+      "name": "demo-mcp-capability-filter",
+      "policyType": "mcp-capability-filter-inbound",
+      "handler": {
+        "module": "$import(@zuplo/runtime/mcp-gateway)",
+        "export": "McpCapabilityFilterInboundPolicy",
+        "options": {
+          "accessControl": {
+            "mode": "rolesAndGroups",
+            "roleClaim": "mcp_roles"
+          },
+          "tools": [
+            {
+              "name": "echo",
+              "roles": ["echo"]
+            },
+            {
+              "name": "generate_uuid",
+              "roles": ["echo"]
+            },
+            {
+              "name": "get_current_time",
+              "roles": ["time_teller"]
+            }
+          ]
+        }
+      }
+    }
+  ]
 }
