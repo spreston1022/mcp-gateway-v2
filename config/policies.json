@@ -46,7 +46,7 @@
             },
             {
               "name": "get_current_time",
-              "roles": ["time_teller"]
+              "roles": ["time-teller"]
             }
           ]
         }
