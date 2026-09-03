@@ -27,47 +27,6 @@
           }
         }
       }
-    },
-    "/hello": {
-      "get": {
-        "operationId": "helloWorld",
-        "summary": "TEMP: test route for DCR compatibility check, will be removed",
-        "x-zuplo-route": {
-          "corsPolicy": "none",
-          "handler": {
-            "module": "$import(./modules/hello-world)",
-            "export": "default"
-          },
-          "mcp": {
-            "type": "tool",
-            "name": "hello_world",
-            "description": "A test tool that says hello"
-          }
-        }
-      }
-    },
-    "/mcp-test": {
-      "post": {
-        "operationId": "mcp-server-test",
-        "summary": "TEMP: test route for DCR compatibility check, will be removed",
-        "x-zuplo-route": {
-          "corsPolicy": "none",
-          "handler": {
-            "module": "$import(@zuplo/runtime)",
-            "export": "mcpServerHandler",
-            "options": {
-              "name": "test-mcp-server",
-              "version": "1.0.0",
-              "operations": [
-                { "file": "./config/routes.oas.json", "id": "helloWorld" }
-              ]
-            }
-          },
-          "policies": {
-            "inbound": ["auth0-managed-oauth"]
-          }
-        }
-      }
     }
   }
 }
