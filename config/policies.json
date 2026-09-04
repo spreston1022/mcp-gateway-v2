@@ -26,6 +26,27 @@
       }
     },
     {
+      "name": "mcp-jwt-auth-inbound",
+      "policyType": "oauth-inbound",
+      "handler": {
+        "export": "Auth0JwtInboundPolicy",
+        "module": "$import(@zuplo/runtime)",
+        "options": {
+          "auth0Domain": "$env(AUTH0_DOMAIN)",
+          "audience": "$env(AUTH0_INBOUND_AUDIENCE)"
+        }
+      }
+    },
+    {
+      "name": "token-exchange-inbound",
+      "policyType": "custom-code-inbound",
+      "handler": {
+        "export": "default",
+        "module": "$import(./modules/token-exchange)",
+        "options": {}
+      }
+    },
+    {
       "name": "demo-mcp-capability-filter",
       "policyType": "mcp-capability-filter-inbound",
       "handler": {

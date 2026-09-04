@@ -82,6 +82,73 @@
         }
       }
     },
+    "/echo-downstream": {
+      "post": {
+        "operationId": "echoDownstreamTool",
+        "summary": "Echo via echo.zuplo.io, with an Auth0 token exchange on the hop",
+        "description": "Exchanges the caller's inbound access token for a new token scoped to a different downstream audience (via Auth0 Custom Token Exchange), then forwards to echo.zuplo.io -- a public reflector, so the exchanged token is visible in the response's headers.authorization for verification.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "Text to echo back"
+                  }
+                },
+                "required": ["text"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "x-zuplo-route": {
+          "corsPolicy": "none",
+          "handler": {
+            "module": "$import(@zuplo/runtime)",
+            "export": "urlForwardHandler",
+            "options": {
+              "baseUrl": "https://echo.zuplo.io"
+            }
+          },
+          "policies": {
+            "inbound": ["token-exchange-inbound"]
+          },
+          "mcp": {
+            "type": "tool",
+            "name": "echo",
+            "description": "Echoes back the provided text, via a downstream call authenticated by a token exchange"
+          }
+        }
+      }
+    },
+    "/mcp-server-delegated": {
+      "post": {
+        "operationId": "mcp-server-delegated",
+        "summary": "Pure MCP Server with per-user token exchange to a downstream API",
+        "description": "MCP server (mcpServerHandler) protected by a plain Auth0 JWT policy (not DCR -- DCR mints the gateway's own opaque token, which would discard the original token this route needs to exchange). The one tool, echo, exchanges the caller's original token for a new one scoped to a downstream API audience before forwarding.",
+        "x-zuplo-route": {
+          "corsPolicy": "none",
+          "handler": {
+            "module": "$import(@zuplo/runtime)",
+            "export": "mcpServerHandler",
+            "options": {
+              "name": "demo-mcp-server-delegated",
+              "version": "1.0.0",
+              "operations": [
+                { "file": "./config/routes.oas.json", "id": "echoDownstreamTool" }
+              ]
+            }
+          },
+          "policies": {
+            "inbound": ["mcp-jwt-auth-inbound"]
+          }
+        }
+      }
+    },
     "/mcp-server": {
       "post": {
         "operationId": "mcp-server",
