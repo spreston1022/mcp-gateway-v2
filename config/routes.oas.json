@@ -129,7 +129,7 @@
       "post": {
         "operationId": "mcp-server-delegated",
         "summary": "Pure MCP Server with per-user token exchange to a downstream API",
-        "description": "MCP server (mcpServerHandler) protected by a plain Auth0 JWT policy (not DCR -- DCR mints the gateway's own opaque token, which would discard the original token this route needs to exchange). The one tool, echo, exchanges the caller's original token for a new one scoped to a downstream API audience before forwarding.",
+        "description": "MCP server (mcpServerHandler) protected by a plain Keycloak-issued JWT policy (not Zuplo's DCR wrapper -- that would mint the gateway's own opaque token, discarding the original token this route needs to exchange). Instead, a hand-rolled PRM document plus a 401 discovery hint let MCP clients (e.g. claude.ai) do DCR and browser login directly against Keycloak, so the real Keycloak-issued token reaches this route intact. The one tool, echo, exchanges that token for a new one scoped to a downstream API audience before forwarding.",
         "x-zuplo-route": {
           "corsPolicy": "none",
           "handler": {
@@ -144,7 +144,21 @@
             }
           },
           "policies": {
-            "inbound": ["mcp-jwt-auth-inbound"]
+            "inbound": ["require-bearer-with-prm-hint", "mcp-jwt-auth-inbound"]
+          }
+        }
+      }
+    },
+    "/internal/mcp-server-delegated/prm": {
+      "get": {
+        "operationId": "mcpServerDelegatedPrm",
+        "summary": "Hand-rolled RFC 9728 PRM document for /mcp-server-delegated",
+        "description": "McpGatewayPlugin claims the whole /.well-known/oauth-protected-resource/* wildcard project-wide and rejects any route it doesn't itself manage (Unknown MCP route), and OpenIdJwtInboundPolicy's oAuthResourceMetadataEnabled flag routes through that same shared mechanism -- so this serves the same RFC 9728 shape manually, at a path that doesn't collide.",
+        "x-zuplo-route": {
+          "corsPolicy": "none",
+          "handler": {
+            "module": "$import(./modules/mcp-server-delegated-prm)",
+            "export": "default"
           }
         }
       }

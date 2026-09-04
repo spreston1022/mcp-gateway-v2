@@ -5,7 +5,7 @@ import {
 } from "@zuplo/runtime";
 
 export interface TokenExchangeConfig {
-  auth0Domain: string;
+  tokenUrl: string;
   downstreamAudience: string;
   clientId: string;
   clientSecret: string;
@@ -20,24 +20,30 @@ export type TokenExchangeResult =
  * tested directly with a mocked fetchFn. Kept separate from the default
  * export per Zuplo's own testing guidance (avoid importing `environment`
  * inside functions you want to unit test).
+ *
+ * Uses application/x-www-form-urlencoded and the standard RFC 8693
+ * subject_token_type (Keycloak's token endpoint, unlike Auth0's Custom
+ * Token Exchange, expects form-encoded params and the plain
+ * urn:ietf:params:oauth:token-type:access_token type -- no custom URN).
  */
 export async function performTokenExchange(
   subjectToken: string,
   config: TokenExchangeConfig,
   fetchFn: typeof fetch = fetch,
 ): Promise<TokenExchangeResult> {
-  const tokenRes = await fetchFn(`https://${config.auth0Domain}/oauth/token`, {
+  const body = new URLSearchParams({
+    grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
+    subject_token: subjectToken,
+    subject_token_type: "urn:ietf:params:oauth:token-type:access_token",
+    audience: config.downstreamAudience,
+    client_id: config.clientId,
+    client_secret: config.clientSecret,
+  });
+
+  const tokenRes = await fetchFn(config.tokenUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
-      subject_token: subjectToken,
-      subject_token_type:
-        "urn:zuplo:params:oauth:token-type:inbound-access-token",
-      audience: config.downstreamAudience,
-      client_id: config.clientId,
-      client_secret: config.clientSecret,
-    }),
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
   });
 
   if (!tokenRes.ok) {
@@ -61,10 +67,10 @@ export default async function exchangeToken(
   const subjectToken = authHeader.slice("Bearer ".length);
 
   const result = await performTokenExchange(subjectToken, {
-    auth0Domain: environment.AUTH0_DOMAIN,
-    downstreamAudience: environment.AUTH0_DOWNSTREAM_AUDIENCE,
-    clientId: environment.AUTH0_CLIENT_ID,
-    clientSecret: environment.AUTH0_CLIENT_SECRET,
+    tokenUrl: environment.KEYCLOAK_TOKEN_URL,
+    downstreamAudience: environment.KEYCLOAK_DOWNSTREAM_AUDIENCE,
+    clientId: environment.KEYCLOAK_CLIENT_ID,
+    clientSecret: environment.KEYCLOAK_CLIENT_SECRET,
   });
 
   if (!result.ok) {
