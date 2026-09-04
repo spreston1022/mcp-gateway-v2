@@ -27,6 +27,85 @@
           }
         }
       }
+    },
+    "/echo": {
+      "post": {
+        "operationId": "echoTool",
+        "summary": "Echo a message",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "Text to echo back"
+                  }
+                },
+                "required": ["text"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "x-zuplo-route": {
+          "corsPolicy": "none",
+          "handler": {
+            "module": "$import(./modules/echo-tool)",
+            "export": "default"
+          },
+          "mcp": {
+            "type": "tool",
+            "name": "echo",
+            "description": "Echoes the provided text back"
+          }
+        }
+      }
+    },
+    "/time": {
+      "get": {
+        "operationId": "getCurrentTimeTool",
+        "summary": "Get the current time",
+        "x-zuplo-route": {
+          "corsPolicy": "none",
+          "handler": {
+            "module": "$import(./modules/get-current-time-tool)",
+            "export": "default"
+          },
+          "mcp": {
+            "type": "tool",
+            "name": "get_current_time",
+            "description": "Returns the current UTC time in ISO 8601 format"
+          }
+        }
+      }
+    },
+    "/mcp-server": {
+      "post": {
+        "operationId": "mcp-server",
+        "summary": "Pure MCP Server (no upstream proxy)",
+        "description": "MCP server built directly from this project's own routes via mcpServerHandler, with DCR-based inbound auth and role-gated tool access -- no external upstream MCP server involved.",
+        "x-zuplo-route": {
+          "corsPolicy": "none",
+          "handler": {
+            "module": "$import(@zuplo/runtime)",
+            "export": "mcpServerHandler",
+            "options": {
+              "name": "demo-mcp-server-standalone",
+              "version": "1.0.0",
+              "operations": [
+                { "file": "./config/routes.oas.json", "id": "echoTool" },
+                { "file": "./config/routes.oas.json", "id": "getCurrentTimeTool" }
+              ]
+            }
+          },
+          "policies": {
+            "inbound": ["auth0-managed-oauth", "demo-mcp-capability-filter"]
+          }
+        }
+      }
     }
   }
 }
